@@ -18,6 +18,9 @@ spec:
     - repoURL: https://github.com/Asherslab/gsbc.argo
       targetRevision: HEAD
       ref: values
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      path: apps/argo-cd/app
+      targetRevision: HEAD
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

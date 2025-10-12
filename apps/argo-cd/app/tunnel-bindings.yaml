@@ -1,0 +1,12 @@
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: argo-cd
+subjects:
+  - name: argo-cd-argocd-server
+    spec:
+      fqdn: argocd.adp.au
+      target: http://argo-cd-argocd-server.argocd.cluster.local:8080
+tunnelRef:
+  kind: ClusterTunnel
+  name: k3s-cluster-tunnel
