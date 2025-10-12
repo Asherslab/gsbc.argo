@@ -6,7 +6,7 @@ subjects:
   - name: argo-cd-argocd-server
     spec:
       fqdn: argocd.adp.au
-      target: http://argo-cd-argocd-server.argo-cd.cluster.local:8080
+      target: http://argo-cd-argocd-server.argo-cd.svc.cluster.local:8080
 tunnelRef:
   kind: ClusterTunnel
   name: gsbc-tunnel
