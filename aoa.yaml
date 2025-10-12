@@ -4,8 +4,10 @@ metadata:
   name: aoa
   namespace: argo-cd
 spec:
+  project: default
   destination:
     namespace: argo-cd
+    server: https://kubernetes.default.svc
   source:
     path: "app-definitions"
     repoURL: https://github.com/Asherslab/gsbc.argo

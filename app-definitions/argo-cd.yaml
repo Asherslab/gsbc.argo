@@ -4,8 +4,10 @@ metadata:
   name: argo-cd
   namespace: argo-cd
 spec:
+  project: default
   destination:
     namespace: argo-cd
+    server: https://kubernetes.default.svc
   sources:
     - chart: argo-cd
       repoURL: https://argoproj.github.io/argo-helm
