@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aoa
+  namespace: argo-cd
+spec:
+  destination:
+    namespace: argo-cd
+  source:
+    path: "app-definitions"
+    repoURL: https://github.com/Asherslab/gsbc.argo
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: false
