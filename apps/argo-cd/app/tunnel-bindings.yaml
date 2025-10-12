@@ -9,4 +9,4 @@ subjects:
       target: http://argo-cd-argocd-server.argocd.cluster.local:8080
 tunnelRef:
   kind: ClusterTunnel
-  name: k3s-cluster-tunnel
+  name: gsbc-tunnel
