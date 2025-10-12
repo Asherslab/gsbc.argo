@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   destination:
-    namespace: kube-system
+    namespace: cloudflare-operator-system
     server: https://kubernetes.default.svc
   sources:
     - path: apps/cloudflare-operator/
@@ -17,7 +17,7 @@ spec:
       targetRevision: HEAD
   syncPolicy:
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
     automated:
       selfHeal: true
       prune: true
