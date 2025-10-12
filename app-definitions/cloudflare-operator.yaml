@@ -12,6 +12,9 @@ spec:
     - path: apps/cloudflare-operator/
       repoURL: https://github.com/Asherslab/gsbc.argo
       targetRevision: HEAD
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      path: apps/cloudflare-operator/app
+      targetRevision: HEAD
   syncPolicy:
     syncOptions:
       - CreateNamespace=false
