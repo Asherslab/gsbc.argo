@@ -1,0 +1,12 @@
+apiVersion: networking.cfargotunnel.com/v1alpha2
+kind: ClusterTunnel
+metadata:
+  name: gsbc-tunnel
+spec:
+  newTunnel:
+    name: gsbc-tunnel
+  cloudflare:
+    email: asher.parry@icloud.com
+    domain: adp.au
+    secret: cloudflare-secrets
+    accountId: 2dc92eef3e5a66a41a3a56dbf8d68e8b
