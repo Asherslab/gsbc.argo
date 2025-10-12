@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudflare-operator
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  sources:
+    - path: apps/cloudflare-operator/
+      repoURL: https://github.com/Asherslab/gsbc.argo
+      targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false
+    automated:
+      selfHeal: true
+      prune: true
