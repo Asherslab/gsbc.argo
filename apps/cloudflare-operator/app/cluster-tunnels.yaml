@@ -1,12 +1,25 @@
 apiVersion: networking.cfargotunnel.com/v1alpha2
 kind: ClusterTunnel
 metadata:
-  name: gsbc-tunnel
+  name: adp-tunnel
 spec:
   newTunnel:
-    name: gsbc-tunnel
+    name: adp-tunnel
   cloudflare:
     email: asher.parry@icloud.com
     domain: adp.au
     secret: cloudflare-secrets
     accountId: 2dc92eef3e5a66a41a3a56dbf8d68e8b
+---
+apiVersion: networking.cfargotunnel.com/v1alpha2
+kind: ClusterTunnel
+metadata:
+  name: baptist-tunnel
+spec:
+  newTunnel:
+    name: baptist-tunnel
+  cloudflare:
+    email: asher.parry@icloud.com
+    domain: baptist.com.au
+    secret: cloudflare-secrets
+    accountId: fd367422b3ed5d701cedfa81dd3e0ec8

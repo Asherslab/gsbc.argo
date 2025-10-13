@@ -9,4 +9,4 @@ subjects:
       target: http://argo-cd-argocd-server.argo-cd.svc.cluster.local:80
 tunnelRef:
   kind: ClusterTunnel
-  name: gsbc-tunnel
+  name: adp-tunnel
