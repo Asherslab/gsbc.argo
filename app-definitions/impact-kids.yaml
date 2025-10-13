@@ -23,7 +23,7 @@ spec:
       targetRevision: HEAD
   syncPolicy:
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
     automated:
       selfHeal: true
       prune: true
