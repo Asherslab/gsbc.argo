@@ -5,17 +5,10 @@ bootstrapScript: |
   #!/bin/bash
   
   # Install system-level dependencies
-  apt-get update && apt-get install -y \
-    python3-dev \
-    default-libmysqlclient-dev \
-    build-essential \
-    pkg-config
+  apt-get update && apt-get install -y
+  apt-get install -y pkg-config python3-dev default-libmysqlclient-dev build-essential
 
-  # Install required Python packages
-  uv pip install \
-    authlib \
-    psycopg2-binary \
-    mysqlclient \
+  uv pip install authlib psycopg2-binary mysqlclient
 
   # Create bootstrap file if it doesn't exist
   if [ ! -f ~/bootstrap ]; then
