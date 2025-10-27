@@ -1,5 +1,5 @@
 init:
-  enabled: false
+  enabled: true
 
 bootstrapScript: |
   #!/bin/bash
