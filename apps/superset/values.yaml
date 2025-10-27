@@ -21,6 +21,11 @@ extraEnvRaw:
       secretKeyRef:
         name: secret-key
         key: SUPERSET_SECRET_KEY
+  - name: DB_PASS
+    valueFrom:
+      secretKeyRef:
+        name: postgres-credentials
+        key: password
 
 postgresql:
   auth:
