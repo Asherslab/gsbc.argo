@@ -6,7 +6,7 @@ subjects:
   - name: metabase
     spec:
       fqdn: metabase.kids.baptist.com.au
-      target: http://metabase.metabase.svc.cluster.local:3000
+      target: http://metabase.metabase.svc.cluster.local:80
 tunnelRef:
   kind: ClusterTunnel
   name: baptist-tunnel
