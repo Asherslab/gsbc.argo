@@ -5,8 +5,8 @@ extraEnvRaw:
   - name: SUPERSET_SECRET_KEY
     valueFrom:
       secretKeyRef:
-        name: secret_key
-        key: secret_key
+        name: secret-key
+        key: SUPERSET_SECRET_KEY
 
 postgresql:
   auth:
