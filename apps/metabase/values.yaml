@@ -1,3 +1,7 @@
 extraEnv:
   - name: MB_SITE_URL
     value: https://kids-metabase.baptist.com.au
+
+database:
+  persistence:
+    enabled: true
