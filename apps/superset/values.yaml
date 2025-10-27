@@ -1,6 +1,3 @@
-init:
-  loadExamples: true
-
 bootstrapScript: |
   #!/bin/bash
   
