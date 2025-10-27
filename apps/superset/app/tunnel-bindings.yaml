@@ -6,7 +6,7 @@ subjects:
   - name: webfrontend-service
     spec:
       fqdn: superset.kids.baptist.com.au
-      target: http://webfrontend-service.impact-kids.svc.cluster.local:80
+      target: http://superset.superset.svc.cluster.local:8088
 tunnelRef:
   kind: ClusterTunnel
   name: baptist-tunnel
