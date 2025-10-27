@@ -1,3 +1,6 @@
+init:
+  enabled: false
+
 bootstrapScript: |
   #!/bin/bash
   
