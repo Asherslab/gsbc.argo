@@ -9,7 +9,7 @@ spec:
     namespace: metabase
     server: https://kubernetes.default.svc
   sources:
-    - chart: pmint93/metabase
+    - chart: metabase
       repoURL: https://pmint93.github.io/helm-charts
       targetRevision: 2.22.2
       helm:
