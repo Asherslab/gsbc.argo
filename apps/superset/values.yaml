@@ -1,8 +1,8 @@
 init:
   loadExamples: true
 
-extraSecretEnv:
-  SUPERSET_SECRET_KEY:
+extraEnvRaw:
+  - name: SUPERSET_SECRET_KEY
     valueFrom:
       secretKeyRef:
         name: secret_key
