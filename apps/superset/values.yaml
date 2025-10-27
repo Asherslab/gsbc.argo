@@ -1,0 +1,6 @@
+init:
+  loadExamples: true
+
+postgresql:
+  auth:
+    existingSecret: postgres-credentials

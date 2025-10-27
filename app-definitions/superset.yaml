@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: superset
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: superset
+    server: https://kubernetes.default.svc
+  sources:
+    - chart: superset
+      repoURL: https://apache.github.io/superset
+      targetRevision: 0.15.0
+      helm:
+        valueFiles:
+          - "$values/apps/superset/values.yaml"
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      targetRevision: HEAD
+      ref: values
+    # - repoURL: https://github.com/Asherslab/gsbc.argo
+    #   path: apps/superset/app
+    #   targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
