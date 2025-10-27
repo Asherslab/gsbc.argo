@@ -15,9 +15,9 @@ bootstrapScript: |
     echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap
   fi
 
-configOverrides:
-  proxy: |
-    ENABLE_PROXY_FIX = True
+# configOverrides:
+#   proxy: |
+#     ENABLE_PROXY_FIX = True
 
 extraEnvRaw:
   - name: SUPERSET_SECRET_KEY
