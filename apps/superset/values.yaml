@@ -1,6 +1,13 @@
 init:
   loadExamples: true
 
+extraSecretEnv:
+  SUPERSET_SECRET_KEY:
+    valueFrom:
+      secretKeyRef:
+        name: secret_key
+        key: secret_key
+
 postgresql:
   auth:
     existingSecret: postgres-credentials
