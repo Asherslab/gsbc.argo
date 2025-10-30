@@ -6,7 +6,7 @@ subjects:
   - name: webfrontend-service
     spec:
       fqdn: kids-api.baptist.com.au
-      target: http://webfrontend-service.impact-kids.svc.cluster.local:80
+      target: http://grpc-service.impact-kids.svc.cluster.local:80
 tunnelRef:
   kind: ClusterTunnel
   name: baptist-tunnel
