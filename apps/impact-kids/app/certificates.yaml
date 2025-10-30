@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata: 
+  name: kids-api
+
+spec: 
+  secretName: certificate
+  issuerRef: 
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  
+  dnsNames: 
+    - kids-api.baptist.com.au
