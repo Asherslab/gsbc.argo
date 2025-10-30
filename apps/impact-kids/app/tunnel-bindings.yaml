@@ -5,7 +5,7 @@ metadata:
 subjects:
   - name: webfrontend-service
     spec:
-      fqdn: kids.baptist.com.au
+      fqdn: kids-api.baptist.com.au
       target: http://webfrontend-service.impact-kids.svc.cluster.local:80
 tunnelRef:
   kind: ClusterTunnel
