@@ -5,3 +5,6 @@ extraEnv:
 database:
   persistence:
     enabled: true
+
+image:
+  repository: docker.io/metabase/metabase
