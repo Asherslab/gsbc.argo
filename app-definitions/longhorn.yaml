@@ -18,9 +18,6 @@ spec:
     - repoURL: https://github.com/Asherslab/gsbc.argo
       targetRevision: HEAD
       ref: values
-    - repoURL: https://github.com/Asherslab/gsbc.argo
-      path: apps/longhorn/app
-      targetRevision: HEAD
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
