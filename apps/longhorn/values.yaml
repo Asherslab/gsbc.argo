@@ -1,2 +1,5 @@
 preUpgradeChecker:
   jobEnabled: false
+
+global:
+  imageRegistry: "docker.io"
