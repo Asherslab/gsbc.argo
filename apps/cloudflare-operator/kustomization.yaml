@@ -4,3 +4,8 @@ namespace: cloudflare-operator-system
 resources:
   # ensure you update the ref in this line to the latest version
   - https://github.com/adyanth/cloudflare-operator.git/config/default?ref=v0.13.1
+
+images:
+- name: adyanth/cloudflare-operator:0.13.1
+  newName: docker.io/adyanth/cloudflare-operator
+  newTag: 0.13.1
