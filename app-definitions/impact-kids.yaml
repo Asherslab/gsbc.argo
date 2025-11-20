@@ -11,7 +11,7 @@ spec:
   sources:
     - chart: impact-kids-app
       repoURL: https://asherslab.github.io/GSBC.ImpactKids
-      targetRevision: 0.0.94 #helm
+      targetRevision: 0.0.95 #helm
       helm:
         valueFiles:
           - "$values/apps/impact-kids/values.yaml"
