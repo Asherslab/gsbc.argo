@@ -1,3 +1,6 @@
+parameters:
+  grpc:
+    port_http: 8080
 config:
   grpc:
     ASPNETCORE_URLS: "http://+:$8080"
