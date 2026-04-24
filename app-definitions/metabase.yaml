@@ -11,7 +11,7 @@ spec:
   sources:
     - chart: metabase
       repoURL: https://pmint93.github.io/helm-charts
-      targetRevision: 2.22.2
+      targetRevision: 2.25.1
       helm:
         valueFiles:
           - "$values/apps/metabase/values.yaml"
