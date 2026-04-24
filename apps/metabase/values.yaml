@@ -3,6 +3,9 @@ extraEnv:
     value: https://kids-metabase.baptist.com.au
 
 database:
+  type: "postgres"
+  existingSecret: database-creds
+  existingSecretConnectionURIKey: connectionUri
   persistence:
     enabled: true
 
