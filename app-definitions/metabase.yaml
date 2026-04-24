@@ -10,8 +10,8 @@ spec:
     server: https://kubernetes.default.svc
   sources:
     - chart: metabase
-      repoURL: https://pmint93.github.io/helm-charts
-      targetRevision: 2.26.0
+      repoURL: https://asherslab.github.io/metabase-helm-charts
+      targetRevision: 2.26.1
       helm:
         valueFiles:
           - "$values/apps/metabase/values.yaml"
