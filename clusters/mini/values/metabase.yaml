@@ -31,3 +31,15 @@ ingress:
     - secretName: metabase-tls
       hosts:
         - kids-metabase.baptist.com.au
+
+# No PVC. Metabase moved off H2 to the impact-kids Postgres in a0d938a
+# (2026-04-24); the H2 file on the OCI volume was last written the same day and
+# has been dormant since. The chart still declares the volume and mount, so
+# persistence has to be disabled here before the PVC can be reclaimed —
+# deleting the PVC alone leaves the pod stuck in ContainerCreating.
+#
+# Maps deep-merge across -f files, so database.type / existingSecret /
+# existingSecretConnectionURIKey from apps/metabase/values.yaml survive this.
+database:
+  persistence:
+    enabled: false
