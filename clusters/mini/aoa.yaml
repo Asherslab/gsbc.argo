@@ -9,7 +9,7 @@ spec:
     namespace: argo-cd
     server: https://kubernetes.default.svc
   source:
-    path: "app-definitions"
+    path: "clusters/mini/app-definitions"
     repoURL: https://github.com/Asherslab/gsbc.argo
     targetRevision: HEAD
   syncPolicy:

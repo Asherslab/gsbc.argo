@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: impact-kids
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: impact-kids
+    server: https://kubernetes.default.svc
+  sources:
+    - chart: impact-kids-app
+      repoURL: https://asherslab.github.io/GSBC.ImpactKids
+      targetRevision: '0.0.142'
+      helm:
+        valueFiles:
+          - $values/apps/impact-kids/values.yaml
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      path: clusters/mini/app/impact-kids
+      targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

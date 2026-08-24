@@ -1,0 +1,47 @@
+# DNS-01, not HTTP-01.
+#
+# The OCI cluster's issuers use an http01 solver against ingressClassName traefik.
+# That cannot work here: the public A/CNAME records point at the Cloudflare tunnel,
+# so Let's Encrypt cannot reach an in-cluster solver, and on-site clients resolve
+# these names to a private address the ACME servers cannot route to.
+#
+# DNS-01 needs no inbound path at all, and is the only solver that can issue certs
+# for names whose public record does not point at this cluster.
+#
+# Requires a Cloudflare API token in the cert-manager namespace (kube-system):
+#   kubectl -n kube-system create secret generic cloudflare-api-token \
+#     --from-literal=api-token=<token>
+# Token scope: Zone / Zone / Read  +  Zone / DNS / Edit, on adp.au and baptist.com.au.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: letsencrypt@adp.au
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: letsencrypt@adp.au
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token

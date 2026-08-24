@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aoa
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: argo-cd
+    server: https://kubernetes.default.svc
+  source:
+    path: "clusters/oci/app-definitions"
+    repoURL: https://github.com/Asherslab/gsbc.argo
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: false

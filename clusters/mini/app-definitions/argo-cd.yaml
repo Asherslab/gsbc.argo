@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-cd
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: argo-cd
+    server: https://kubernetes.default.svc
+  sources:
+    - chart: argo-cd
+      repoURL: https://argoproj.github.io/argo-helm
+      targetRevision: '8.6.0'
+      helm:
+        valueFiles:
+          - $values/apps/argo-cd/values.yaml
+          - $values/clusters/mini/values/argo-cd.yaml
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      path: clusters/mini/app/argo-cd
+      targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

@@ -1,0 +1,31 @@
+# The impact-kids chart exposes no resources knobs, and none of its six pods
+# carried requests or limits on OCI. On a 3-node cluster a leak took out one
+# node; on a single node it takes out everything. A LimitRange applies defaults
+# cluster-side without needing a chart change.
+#
+# Sized from measured OCI usage: grpc 95Mi, rabbitmq 90Mi, sql 66Mi, yarp 60Mi.
+# Note this only affects pods created after it exists.
+#
+# This is also what constrains RabbitMQ. Its default vm_memory_high_watermark is
+# 0.6 of available memory, and on a single 8GiB node that would be ~4.8Gi — more
+# than half the cluster. Setting it via chart values is NOT possible: the chart's
+# rabbitmq ConfigMap template hardcodes RABBITMQ_DEFAULT_USER as its only key, so
+# extra keys under config.rabbitmq are silently dropped (verified by templating).
+# Instead RabbitMQ reads the container's cgroup memory limit, so the 384Mi default
+# below becomes its ceiling and the watermark lands at ~230Mi.
+# Confirm after deploy:
+#   kubectl -n impact-kids exec rabbitmq-statefulset-0 -- rabbitmq-diagnostics status | grep -A3 'Memory'
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: impact-kids-defaults
+  namespace: impact-kids
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "1"
+        memory: 384Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 96Mi
