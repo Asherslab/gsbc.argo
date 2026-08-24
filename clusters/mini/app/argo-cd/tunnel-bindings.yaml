@@ -1,0 +1,14 @@
+# Temporary hostname. Flip to argocd.adp.au at cutover, after the OCI binding
+# is removed — see clusters/mini/README.md.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: argo-cd
+subjects:
+  - name: argo-cd-argocd-server
+    spec:
+      fqdn: argocd-mini.adp.au
+      target: http://argo-cd-argocd-server.argo-cd.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: adp-tunnel-mini

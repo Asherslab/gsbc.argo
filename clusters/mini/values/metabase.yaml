@@ -1,0 +1,33 @@
+# Mini overlay.
+#
+# extraEnv is a LIST. Helm replaces lists across -f files rather than appending,
+# so MB_SITE_URL from apps/metabase/values.yaml would be silently dropped if it
+# were not repeated here. Keep both entries in sync with the shared file.
+extraEnv:
+  - name: MB_SITE_URL
+    value: https://kids-metabase.baptist.com.au
+  - name: JAVA_OPTS
+    # Metabase is the single largest consumer in the cluster (measured 1218Mi,
+    # ~50% of all workload memory) and the only pod that can realistically
+    # exhaust a single node. Cap the heap explicitly.
+    value: "-Xmx1g -XX:MaxRAMPercentage=60"
+
+resources:
+  requests: {cpu: 100m, memory: 768Mi}
+  limits: {cpu: "2", memory: 1536Mi}
+
+# LAN path. Public DNS still points at the Cloudflare tunnel; this Ingress is
+# only reachable via the on-site split-horizon DNS override to the node IP.
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - kids-metabase.baptist.com.au
+  path: /
+  pathType: Prefix
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    - secretName: metabase-tls
+      hosts:
+        - kids-metabase.baptist.com.au

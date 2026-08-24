@@ -1,0 +1,13 @@
+# Temporary hostname. Flip to kids-metabase.baptist.com.au at cutover.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: metabase
+subjects:
+  - name: metabase
+    spec:
+      fqdn: kids-metabase-mini.baptist.com.au
+      target: http://metabase.metabase.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: baptist-tunnel-mini

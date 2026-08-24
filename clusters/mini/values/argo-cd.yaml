@@ -1,0 +1,32 @@
+# Mini overlay. Merges on top of apps/argo-cd/values.yaml (which keeps
+# server.extraArgs --insecure and service.type ClusterIP — Helm deep-merges maps
+# across -f files, so those survive the server.resources block below).
+
+dex:
+  enabled: false          # no SSO configured; measured 38Mi
+notifications:
+  enabled: false          # no notification triggers configured; measured 35Mi
+
+applicationSet:
+  # chart 8.6.0 has NO applicationSet.enabled key — the deployment template is
+  # unguarded, so the only lever is replicas. Verified against the 8.6.0 chart:
+  # replicas:0 renders the Deployment with replicas: 0 and no pod.
+  replicas: 0
+
+# Requests/limits sized from measured OCI usage, not guesses.
+controller:
+  resources:              # measured 402Mi
+    requests: {cpu: 100m, memory: 256Mi}
+    limits: {memory: 768Mi}
+repoServer:
+  resources:              # measured 129Mi
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {memory: 512Mi}
+server:
+  resources:              # measured 42Mi
+    requests: {cpu: 25m, memory: 64Mi}
+    limits: {memory: 256Mi}
+redis:
+  resources:
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {memory: 128Mi}

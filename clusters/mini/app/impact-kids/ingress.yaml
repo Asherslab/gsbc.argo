@@ -1,0 +1,28 @@
+# The impact-kids chart (0.0.142) renders no Ingress — verified by templating it.
+# This is the LAN path: on-site clients resolve kids.baptist.com.au to the node's
+# LAN address via split-horizon DNS and land here. Public DNS is unaffected and
+# continues to point at the Cloudflare tunnel.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: impact-kids
+  namespace: impact-kids
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: impact-kids-tls
+      hosts:
+        - kids.baptist.com.au
+  rules:
+    - host: kids.baptist.com.au
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: yarp-service
+                port:
+                  number: 80

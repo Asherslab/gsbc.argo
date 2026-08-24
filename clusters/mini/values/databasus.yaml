@@ -1,0 +1,11 @@
+# Mini overlay. Chart default reserves 1Gi/500m; measured usage is 97Mi.
+resources:
+  requests: {cpu: 100m, memory: 128Mi}
+  limits: {cpu: 500m, memory: 256Mi}
+
+persistence:
+  # This chart guards the key, so "" renders as ABSENT and the default class
+  # (k3s local-path) applies. Do not copy this line into a chart that does not
+  # guard it: an explicit storageClassName: "" opts the PVC out of dynamic
+  # provisioning entirely and it stays Pending forever.
+  storageClassName: ""
