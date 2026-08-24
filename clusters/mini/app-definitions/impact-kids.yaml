@@ -11,10 +11,10 @@ spec:
   sources:
     - chart: impact-kids-app
       repoURL: https://asherslab.github.io/GSBC.ImpactKids
-      targetRevision: '0.0.142'
+      targetRevision: 0.0.154 #helm
       helm:
         valueFiles:
-          - $values/apps/impact-kids/values.yaml
+          - "$values/apps/impact-kids/values.yaml"
     - repoURL: https://github.com/Asherslab/gsbc.argo
       targetRevision: HEAD
       ref: values
