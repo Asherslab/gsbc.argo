@@ -1,0 +1,133 @@
+# Lima VM hosting the single-node k3s cluster.
+#   ./bootstrap-k3s.sh
+#
+# vmType is qemu, not vz, deliberately: vz cannot do bridged networking
+# (Apple gates VZBridgedNetworkDeviceAttachment behind an entitlement Lima
+# cannot ship), and bridged is what gives the VM a real LAN address so on-site
+# clients reach the services directly instead of hairpinning through Cloudflare.
+# qemu on arm64 uses HVF, so CPU is native; the disk I/O penalty is irrelevant
+# at this cluster's measured load (0.29 cores total).
+base: template:ubuntu-24.04
+
+vmType: "qemu"
+arch: "aarch64"
+
+cpus: 4                   # cluster measured 0.29 cores total
+memory: "8GiB"            # measured steady state ~4.2GiB
+disk: "100GiB"            # PVCs total 22Gi + images
+
+mounts: []
+ssh:
+  loadDotSSHPubKeys: false
+
+# Bridged: the VM becomes an ordinary host on the LAN.
+# Requires socket_vmnet + a `bridged` entry in ~/.lima/_config/networks.yaml.
+networks:
+  - lima: bridged
+
+# ---------------------------------------------------------------------------
+# EDIT THESE. The address MUST be outside the router's DHCP pool — bridged mode
+# has no Lima-managed DHCP, and nothing here can stop the router leasing this
+# address to something else. Confirm the pool range with whoever runs the network.
+# Override without editing:  ./bootstrap-k3s.sh --param LAN_CIDR=10.0.0.50/24
+# ---------------------------------------------------------------------------
+param:
+  LAN_CIDR: "192.168.3.150/22" # static address + prefix
+  LAN_GATEWAY: "192.168.2.1"
+  LAN_DNS: "8.8.8.8,1.1.1.1"   # comma-separated
+  GUEST_IF: "lima0"            # Lima names the first bridged NIC lima0
+
+provision:
+  # --- static addressing, before k3s so --node-ip is correct on first boot ---
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eu -o pipefail
+
+      LAN_IP="${PARAM_LAN_CIDR%%/*}"
+
+      if ! ip link show "$PARAM_GUEST_IF" >/dev/null 2>&1; then
+        echo "ERROR: bridged interface '$PARAM_GUEST_IF' not present. Interfaces:" >&2
+        ip -br link show >&2
+        exit 1
+      fi
+
+      # The usernet NIC (192.168.5.0/24) carries Lima's SSH and port forwarding.
+      # It must keep working, but must NOT win the default route, or LAN clients
+      # on other subnets get asymmetric routing. Demote it instead of removing it.
+      USERNET_IF="$(ip -4 -o addr show | awk '$4 ~ /^192\.168\.5\./ {print $2; exit}')"
+
+      NETPLAN=/etc/netplan/60-lima-bridged.yaml
+      TMP="$(mktemp)"
+      {
+        echo "network:"
+        echo "  version: 2"
+        echo "  renderer: networkd"
+        echo "  ethernets:"
+        echo "    ${PARAM_GUEST_IF}:"
+        echo "      dhcp4: false"
+        echo "      dhcp6: false"
+        echo "      addresses: [${PARAM_LAN_CIDR}]"
+        echo "      routes:"
+        echo "        - to: default"
+        echo "          via: ${PARAM_LAN_GATEWAY}"
+        echo "          metric: 100"
+        echo "      nameservers:"
+        echo "        addresses: [${PARAM_LAN_DNS//,/, }]"
+        if [ -n "$USERNET_IF" ]; then
+          echo "    ${USERNET_IF}:"
+          echo "      dhcp4: true"
+          echo "      dhcp4-overrides:"
+          echo "        route-metric: 500"
+        fi
+      } > "$TMP"
+
+      # Only apply on change — this script runs every boot, and a needless
+      # `netplan apply` blips the network under a running cluster.
+      if ! cmp -s "$TMP" "$NETPLAN"; then
+        install -m 0600 "$TMP" "$NETPLAN"
+        netplan apply
+        sleep 3
+      fi
+      rm -f "$TMP"
+
+      ip -4 -o addr show "$PARAM_GUEST_IF" | grep -q "${LAN_IP}/" || {
+        echo "ERROR: ${LAN_IP} did not come up on ${PARAM_GUEST_IF}" >&2; exit 1; }
+
+  # --- k3s ---
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      command -v k3s >/dev/null 2>&1 && exit 0
+
+      LAN_IP="${PARAM_LAN_CIDR%%/*}"
+
+      # traefik and servicelb are KEPT (unlike a tunnel-only design): they are
+      # what terminates LAN traffic on the bridged interface. helm-controller is
+      # therefore also kept, since k3s installs bundled traefik through it.
+      #
+      # --node-ip / --flannel-iface pin the node to the LAN address rather than
+      # letting k3s infer it from whichever interface holds the default route.
+      # --tls-san lets kubectl reach the API at https://$LAN_IP:6443 from the LAN.
+      curl -sfL https://get.k3s.io | \
+        INSTALL_K3S_CHANNEL="v1.34" \
+        INSTALL_K3S_EXEC="server \
+          --node-ip=${LAN_IP} \
+          --flannel-iface=${PARAM_GUEST_IF} \
+          --tls-san=${LAN_IP} \
+          --write-kubeconfig-mode=644 \
+          --kubelet-arg=system-reserved=cpu=500m,memory=1Gi \
+          --kubelet-arg=kube-reserved=cpu=250m,memory=512Mi \
+          --kubelet-arg=eviction-hard=memory.available<500Mi,nodefs.available<10% \
+          --kubelet-arg=image-gc-high-threshold=75 \
+          --kubelet-arg=image-gc-low-threshold=60" \
+        sh -
+
+probes:
+  - description: "k3s node to be Ready"
+    script: |
+      #!/bin/bash
+      set -eu -o pipefail
+      timeout 300s bash -c "until kubectl --kubeconfig=/etc/rancher/k3s/k3s.yaml get node | grep -q ' Ready '; do sleep 3; done"
+    hint: "k3s did not become Ready; run 'limactl shell k3s sudo journalctl -u k3s -n 100'"
