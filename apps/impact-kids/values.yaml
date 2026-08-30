@@ -49,4 +49,4 @@ backup:
 # Expect roughly 60% of attempted fetches to succeed. Over half the real photo URLs in this account
 # are malformed by Elvanto itself and 403 permanently; that is not a fault in the job.
 photo_backfill:
-  enabled: false
+  enabled: true
