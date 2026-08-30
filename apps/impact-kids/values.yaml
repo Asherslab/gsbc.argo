@@ -1,0 +1,52 @@
+# impact-kids — shared Helm overlay.
+#
+# Was empty until now, and everything not named here still runs on the chart's own defaults. Only
+# put things here that must differ per environment; the chart is the place for a value that is the
+# same everywhere.
+#
+# NOTHING SECRET GOES IN THIS FILE. This repo is git, and Argo reads it in the clear. Every
+# credential the app needs is a Secret created out of band with kubectl and merely referenced by the
+# chart — see "Prerequisites" in clusters/mini/README.md.
+
+# Hourly offsite copy of the person photos to Backblaze B2.
+#
+# The photo object store (SeaweedFS) is in-cluster, single replica, on one PVC. That is fine for
+# serving but it is not a backup, and photos are the one thing here that cannot be regenerated: a
+# lost photo means re-shooting a child. The Postgres dump does not cover them — the blobs are
+# deliberately outside the database.
+#
+# TO TURN ON, once the B2 bucket and application key exist:
+#   1. create the s3-backup-secret (clusters/mini/README.md)
+#   2. fill in bucket and endpoint below
+#   3. set enabled: true
+#
+# Do NOT set enabled: true with bucket or endpoint still blank. They are `required` in the chart, so
+# the render fails, and a failed render is a failed sync for the WHOLE application — not just the
+# backup. Leaving it disabled is the safe half-configured state; enabling it half-configured is not.
+backup:
+  s3:
+    enabled: false
+
+    # REPLACE ME — the B2 bucket name.
+    bucket: ""
+
+    # REPLACE ME — the region-specific S3 endpoint, read off the bucket in the B2 console.
+    # e.g. https://s3.us-west-004.backblazeb2.com
+    endpoint: ""
+
+    # Hourly is well inside any sane RPO here: photos are written a handful at a time on a service
+    # night, and the worst case is re-shooting one child. Cost is a couple of list calls per run
+    # against a free allowance of 2,500 a day.
+    schedule: "0 * * * *"
+
+# The one-off pull of the photos Elvanto already holds.
+#
+# Deliberately not a Helm hook and off by default: it is a head start, not a correctness
+# requirement, and it makes hundreds of outbound requests to Elvanto's CDN. Run it ONCE, deliberately
+# — set enabled: true, sync, let the Job finish, then set it back to false. It skips anyone who
+# already has a photo, so a second run re-fetches the whole Elvanto roll to do nothing.
+#
+# Expect roughly 60% of attempted fetches to succeed. Over half the real photo URLs in this account
+# are malformed by Elvanto itself and 403 permanently; that is not a fault in the job.
+photo_backfill:
+  enabled: false
