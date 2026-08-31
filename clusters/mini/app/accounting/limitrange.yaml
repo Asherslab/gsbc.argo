@@ -1,0 +1,29 @@
+# The accounting chart exposes no resources knobs, same as impact-kids'. On a single node an
+# unconstrained leak takes out everything, not one node, so defaults are applied namespace-side.
+#
+# Sized from impact-kids' measured usage for the components this deployment shares with it — grpc 95Mi,
+# sql 66Mi, yarp 60Mi — with headroom the other stack does not need:
+#
+#   - The gRPC service renders PDFs (QuestPDF/Skia) and stages 20 MB uploads. Staging is to a temp FILE
+#     rather than a MemoryStream precisely so a 20 MB receipt is not 20 MB of managed heap, but the PDF
+#     render is genuinely memory-hungry for the duration of one request.
+#   - There is no RabbitMQ and no Redis here, so this namespace has four workloads to impact-kids' six
+#     and can afford a higher per-container default.
+#
+# This only affects pods created after it exists. Applied by Argo before the chart on a fresh install
+# only by luck of ordering — if the numbers ever matter, check with:
+#   kubectl -n accounting get pod -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].resources}{"\n"}{end}'
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: accounting-defaults
+  namespace: accounting
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "1"
+        memory: 512Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 96Mi

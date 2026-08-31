@@ -1,0 +1,47 @@
+# accounting — shared Helm overlay for GSBC.Accounting (the church expense and debit-card forms).
+#
+# Everything not named here runs on the chart's own defaults, which is the intended state: only put a
+# value here if it must differ per environment. A value that is the same everywhere belongs in the
+# chart, in GSBC.Accounting/Charts/accounting/values.yaml.
+#
+# NOTHING SECRET GOES IN THIS FILE. This repo is git and Argo reads it in the clear. Every credential
+# the app needs is a Secret created out of band with kubectl and merely referenced by the chart — see
+# "accounting" in clusters/mini/README.md.
+#
+# This deployment has its OWN SeaweedFS, in its own namespace, separate from impact-kids'. That was the
+# decision rather than an oversight: each instance is one small container, so sharing saves nothing
+# worth the coupling, and separate identities mean a credential or capacity problem on one side cannot
+# reach the other's objects. Nothing here refers to the impact-kids namespace, and nothing should.
+
+# Hourly offsite copy of the receipts to Backblaze B2.
+#
+# The receipts are the one thing in this deployment that cannot be regenerated. They are held outside
+# the database on purpose, so the Postgres dump does not cover them, and the object store is a single
+# replica on one PVC — fine for serving, not a backup. A lost receipt is a hole in a seven-year audit
+# trail.
+#
+# This needs its OWN B2 bucket and its OWN application key. Adding `Read:accounting` to the
+# impact-kids backup identity would do nothing: that identity lives in the other SeaweedFS.
+#
+# TO TURN ON, once the B2 bucket and application key exist:
+#   1. create the s3-backup-secret (clusters/mini/README.md)
+#   2. fill in bucket and endpoint below
+#   3. set enabled: true
+#
+# Do NOT set enabled: true with bucket or endpoint still blank. They are `required` in the chart, so
+# the render fails, and a failed render is a failed sync for the WHOLE application — not just the
+# backup. Leaving it disabled is the safe half-configured state; enabling it half-configured is not.
+backup:
+  s3:
+    enabled: false
+
+    # REPLACE ME — the B2 bucket name. Separate from impact-kids' bucket.
+    bucket: ""
+
+    # REPLACE ME — the region-specific S3 endpoint, read off the bucket in the B2 console.
+    # e.g. https://s3.us-west-004.backblazeb2.com
+    endpoint: ""
+
+    # Hourly is well inside any sane RPO here: claims arrive a handful a week, and the cost is a couple
+    # of list calls per run against a free allowance of 2,500 a day.
+    schedule: "0 * * * *"

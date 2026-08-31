@@ -1,0 +1,23 @@
+# Public path for the expense forms: expenses.baptist.com.au.
+#
+# No `-mini` staging name here, unlike impact-kids. That name exists there because the hostname was
+# already live on the OCI cluster and had to be flipped deliberately. This application has never been
+# deployed anywhere, so there is no production record to steal and nothing to cut over from — the real
+# hostname is safe to claim on the first sync.
+#
+# The operator creates the proxied CNAME in Cloudflare when this object appears, and deletes it when the
+# object goes away. Do not also create the record by hand.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: accounting
+subjects:
+  - name: yarp-service
+    spec:
+      fqdn: expenses.baptist.com.au
+      # YARP is the only ingress. Everything — the WASM app, /gRPC/ and /api/ — is served from this one
+      # origin, which is what lets the browser hold the __gsbc_anon cookie against it.
+      target: http://yarp-service.accounting.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: baptist-tunnel-mini
