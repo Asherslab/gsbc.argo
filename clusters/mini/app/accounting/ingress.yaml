@@ -1,0 +1,30 @@
+# The chart renders no Ingress. This is the LAN path: on-site clients resolve
+# expenses.baptist.com.au to the node's LAN address via split-horizon DNS and land here, while public
+# DNS points at the Cloudflare tunnel. Both paths reach the same yarp-service.
+#
+# The certificate is valid on both paths because cert-manager solves DNS-01 on this cluster, not HTTP-01
+# — see clusters/mini/README.md.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: accounting
+  namespace: accounting
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: accounting-tls
+      hosts:
+        - expenses.baptist.com.au
+  rules:
+    - host: expenses.baptist.com.au
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: yarp-service
+                port:
+                  number: 80

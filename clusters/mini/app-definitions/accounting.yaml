@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: accounting
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: accounting
+    server: https://kubernetes.default.svc
+  sources:
+    - chart: accounting-app
+      repoURL: https://asherslab.github.io/GSBC.Accounting
+      # The `#helm` marker is load-bearing. GSBC.Accounting's argo-repo-update workflow rewrites this
+      # line by matching that comment, because the two git sources below also carry a targetRevision.
+      # Delete the comment and deployments stop silently — the sed matches nothing and the job passes.
+      targetRevision: 0.0.1 #helm
+      helm:
+        valueFiles:
+          - "$values/apps/accounting/values.yaml"
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://github.com/Asherslab/gsbc.argo
+      path: clusters/mini/app/accounting
+      targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
