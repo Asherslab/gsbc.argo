@@ -14,7 +14,7 @@ spec:
       # The `#helm` marker is load-bearing. GSBC.Accounting's argo-repo-update workflow rewrites this
       # line by matching that comment, because the two git sources below also carry a targetRevision.
       # Delete the comment and deployments stop silently — the sed matches nothing and the job passes.
-      targetRevision: 0.0.8 #helm
+      targetRevision: 0.0.9 #helm
       helm:
         valueFiles:
           - "$values/apps/accounting/values.yaml"
