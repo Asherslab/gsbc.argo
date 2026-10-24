@@ -10,4 +10,4 @@ images:
   - name: ghcr.io/asherslab/graced-bibleapp
     # The `#image` marker is load-bearing: Graced.BibleApp's docker-publish workflow rewrites this line by
     # matching it. Delete the comment and deploys stop silently — the sed matches nothing and CI passes.
-    newTag: sha-d986685efe6b5d95eb434baaca2defc2dda194cf #image
+    newTag: sha-6333797898be2d2c7049a5bf99aa732a78de6889 #image
