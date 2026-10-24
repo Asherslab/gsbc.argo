@@ -1,0 +1,41 @@
+# Static files only: the Bible text, maps and art ship inside the app and user data stays in each browser,
+# so one replica with no volume. nginx idles at a few MiB.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graced
+  labels:
+    app: graced
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: graced
+  template:
+    metadata:
+      labels:
+        app: graced
+    spec:
+      containers:
+        - name: web
+          # Tag set by kustomization.yaml. A private image: pulled with the node-level GHCR credential
+          # (bootstrap-ghcr.sh), so no imagePullSecrets here.
+          image: ghcr.io/asherslab/graced-bibleapp
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi

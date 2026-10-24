@@ -1,0 +1,25 @@
+# LAN path, same pattern as the other apps: on-site clients that resolve graced.adp.au to the node land
+# here; public DNS points at the tunnel. DNS-01 certs are valid on both paths (clusters/mini/README.md).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: graced
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: graced-tls
+      hosts:
+        - graced.adp.au
+  rules:
+    - host: graced.adp.au
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: graced
+                port:
+                  number: 80

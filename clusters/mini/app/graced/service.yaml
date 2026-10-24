@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: graced
+spec:
+  selector:
+    app: graced
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

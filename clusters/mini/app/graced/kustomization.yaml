@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: graced
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - tunnel-bindings.yaml
+images:
+  - name: ghcr.io/asherslab/graced-bibleapp
+    # The `#image` marker is load-bearing: Graced.BibleApp's docker-publish workflow rewrites this line by
+    # matching it. Delete the comment and deploys stop silently — the sed matches nothing and CI passes.
+    newTag: sha-254b5a747267b7008f1d688ec16d7355b9afbff1 #image

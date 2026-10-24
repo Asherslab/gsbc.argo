@@ -1,0 +1,17 @@
+# Public path: graced.adp.au through the adp.au tunnel. A new name, never deployed elsewhere, so it is
+# safe to claim on the first sync. The operator creates and deletes the proxied CNAME; do not add it by hand.
+#
+# Cloudflare terminates TLS here, which is what lets the PWA install and run its service worker on a phone.
+# The app has no sign-in: anyone with the URL can open it. Put Cloudflare Access in front if that matters.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: graced
+subjects:
+  - name: graced
+    spec:
+      fqdn: graced.adp.au
+      target: http://graced.graced.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: adp-tunnel-mini

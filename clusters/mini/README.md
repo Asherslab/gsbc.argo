@@ -40,6 +40,44 @@ kubectl -n metabase create secret generic database-creds \
 Nothing that touches Cloudflare works until `cloudflare-secrets` exists — which
 is the only reason an accidental sync of the OCI definitions here was harmless.
 
+### Private images (GHCR)
+
+Private packages under `ghcr.io/asherslab/*` (currently: graced) are pulled with
+**node-level** credentials, not an `imagePullSecret` per namespace. On one node
+that is one credential in one place, and a new private app needs only its
+manifests.
+
+1. Create a GitHub personal access token **(classic)** with only the
+   `read:packages` scope. Fine-grained tokens cannot read GHCR packages. Note its
+   expiry: after it, new pulls fail with 401 while running pods carry on.
+2. From the repo root on the mini:
+
+   ```
+   ./bootstrap-ghcr.sh
+   ```
+
+   It prompts for the token, checks it against GHCR, writes
+   `/etc/rancher/k3s/registries.yaml` (mode 600) inside the VM, restarts k3s, and
+   test-pulls the graced image.
+
+The token lives on the VM's disk, not in git, so **re-run this after
+`bootstrap-recreate-k3s.sh`** or every private image fails with
+`ImagePullBackOff`. Rotating the token is the same command.
+
+### graced (Graced.BibleApp — Bible app proof of concept)
+
+Namespace `graced`, hostname `graced.adp.au` through `adp-tunnel-mini`, and the
+same name on the LAN ingress. One stateless nginx pod: no database, no volume, no
+Secret of its own. The only prerequisite is the GHCR credential above.
+
+Plain manifests in `clusters/mini/app/graced/`, not a chart. The image tag is
+pinned in its `kustomization.yaml` (`newTag: … #image`), and Graced.BibleApp's
+`docker-publish` workflow rewrites that line after each image build — which needs
+an `ARGO_REPO_TOKEN` secret in that repository, the same as GSBC.Accounting's.
+
+The app has no sign-in. Anyone with the URL can open it; put Cloudflare Access in
+front of `graced.adp.au` if it should stay private.
+
 ### impact-kids photo store
 
 Three more, all in the `impact-kids` namespace. The chart renders no Secret of

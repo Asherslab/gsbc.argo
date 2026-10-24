@@ -109,4 +109,5 @@ Next steps:
        cp au.adp.lima-k3s.plist ~/Library/LaunchAgents/
        launchctl bootstrap gui/\$(id -u) ~/Library/LaunchAgents/au.adp.lima-k3s.plist
   2. Bootstrap Argo CD against clusters/mini.
+  3. Let k3s pull private GHCR images:  ./bootstrap-ghcr.sh
 EOF

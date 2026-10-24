@@ -1,0 +1,25 @@
+# Graced — a Bible app proof of concept (Asherslab/Graced.BibleApp, private). One stateless nginx pod
+# serving a PWA; no database, no secrets, no chart. The manifests and the pinned image tag are in
+# clusters/mini/app/graced/, and Graced.BibleApp's CI rewrites that tag on every push to main.
+#
+# The image is a PRIVATE GHCR package: the node pulls it with the credential bootstrap-ghcr.sh installs.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: graced
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: graced
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/Asherslab/gsbc.argo
+    path: clusters/mini/app/graced
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
