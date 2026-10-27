@@ -10,4 +10,4 @@ images:
   - name: ghcr.io/asherslab/gsbc-churchapp-pwa
     # The `#image` marker is load-bearing: GSBC.ChurchApp's app-poc-pwa workflow rewrites this line by
     # matching it. Delete the comment and deploys stop silently.
-    newTag: sha-581c91272b3a7d8fc355acf540b9bd24ee3f8f9c #image
+    newTag: sha-b1602ed9cf743e4356bd36d13df731ed5d87c6bc #image
