@@ -1,0 +1,17 @@
+# Public path: app.baptist.com.au through the baptist.com.au tunnel. The name had no DNS record when this
+# was added (2026-10-27), so it is safe to claim on the first sync. The operator creates and deletes the
+# proxied CNAME; do not add it by hand.
+#
+# No sign-in: anyone with the URL can open the preview. Put Cloudflare Access in front if that matters.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: church-app-pwa
+subjects:
+  - name: church-app-pwa
+    spec:
+      fqdn: app.baptist.com.au
+      target: http://church-app-pwa.church-app-pwa.svc.cluster.local:80
+tunnelRef:
+  kind: ClusterTunnel
+  name: baptist-tunnel-mini

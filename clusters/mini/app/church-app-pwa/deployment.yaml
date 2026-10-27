@@ -1,0 +1,38 @@
+# The church app design spike as a PWA, for staff to try for a couple of weeks before TestFlight. Static
+# files only: sample content ships inside the app and anything a user changes stays in their browser.
+# Probes are TCP, not an HTTP health path: GSBC.ChurchApp's rule is that health checks are gRPC.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: church-app-pwa
+  labels:
+    app: church-app-pwa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: church-app-pwa
+  template:
+    metadata:
+      labels:
+        app: church-app-pwa
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/asherslab/gsbc-churchapp-pwa
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            tcpSocket:
+              port: http
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi

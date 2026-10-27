@@ -1,0 +1,25 @@
+# LAN path, same pattern as the other apps: on-site clients that resolve app.baptist.com.au to the node land
+# here; public DNS points at the tunnel. DNS-01 certs are valid on both paths (clusters/mini/README.md).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: church-app-pwa
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: church-app-pwa-tls
+      hosts:
+        - app.baptist.com.au
+  rules:
+    - host: app.baptist.com.au
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: church-app-pwa
+                port:
+                  number: 80
