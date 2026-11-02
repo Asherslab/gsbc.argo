@@ -11,3 +11,19 @@ database:
 
 image:
   repository: docker.io/metabase/metabase
+  # The chart fork (2.26.1) still defaults to v0.60.2.x, and a floating `.x` tag
+  # under IfNotPresent never actually moves, so pin the patch.
+  tag: v0.65.2.5
+
+# Major upgrades run one-way app-DB migrations on startup. The default
+# RollingUpdate would start the new pod migrating while the old one is still
+# serving against the same schema, which Metabase says not to do. Take the brief
+# outage instead.
+strategy:
+  type: Recreate
+
+# The chart allows 60 x 5s = 5min to become healthy, after which the kubelet kills
+# the pod — mid-migration if a multi-version jump runs long, which can leave the
+# app DB half-migrated. Allow 20min.
+startupProbe:
+  failureThreshold: 240
