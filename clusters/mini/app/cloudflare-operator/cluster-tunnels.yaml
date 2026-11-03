@@ -31,6 +31,9 @@ metadata:
 spec:
   newTunnel:
     name: baptist-tunnel-mini
+  # HTTP/2 to Cloudflare's edge, not the default QUIC: cloudflared only proxies gRPC trailers over the HTTP/2
+  # transport (cloudflared#1641, #491), and the church app's native gRPC at uat-app.baptist.com.au needs them.
+  protocol: http2
   cloudflare:
     email: asher.parry@icloud.com
     domain: baptist.com.au
