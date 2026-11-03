@@ -1,0 +1,85 @@
+# The API: code-first gRPC on two ports, `web` (HTTP/1.1 + HTTP/2, gRPC-Web) and `grpc` (h2c only, native
+# gRPC). Only the gateway calls it; nothing routes here from outside.
+#
+# Probes are gRPC (grpc.health.v1): the app has no HTTP health path, by rule. Liveness is the bare service;
+# readiness ("ready") includes the database, so a Postgres outage takes the API out of the Service without
+# restarting it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels:
+    app: api
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          # Tag set by kustomization.yaml. Private or public, the node-level GHCR credential pulls it.
+          image: ghcr.io/asherslab/gsbc-churchapp-api
+          ports:
+            - containerPort: 8080
+              name: web
+            - containerPort: 8081
+              name: grpc
+          envFrom:
+            - configMapRef:
+                name: church-app-config
+            - secretRef:
+                name: database-secret
+            - secretRef:
+                name: storage-secret
+            # Optional: without it the API starts and account emails wait in email.outgoing_emails.
+            - secretRef:
+                name: email-secret
+                optional: true
+          env:
+            - name: Accounts__Tokens__PublicKey
+              valueFrom:
+                secretKeyRef:
+                  name: tokens-secret
+                  key: Accounts__Tokens__PublicKey
+          startupProbe:
+            grpc:
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            grpc:
+              port: 8081
+              service: ready
+            periodSeconds: 10
+          livenessProbe:
+            grpc:
+              port: 8081
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+spec:
+  selector:
+    app: api
+  ports:
+    - name: web
+      port: 8080
+      targetPort: web
+    - name: grpc
+      port: 8081
+      targetPort: grpc

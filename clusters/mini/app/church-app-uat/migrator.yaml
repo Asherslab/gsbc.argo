@@ -1,0 +1,33 @@
+# GSBC.ChurchApp's Hosts.Migrator applies every feature's migrations in order, then exits; the API never
+# migrates on start-up (its SPEC §10). An Argo Sync hook rather than a plain Job, because a Job's template
+# can't change in place: BeforeHookCreation deletes the last run and starts a fresh one on every sync, with
+# the new image. Wave 0: after Postgres, before the API and gateway. A failed migration fails the sync, so
+# the old API keeps running.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrator
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: migrator
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrator
+          image: ghcr.io/asherslab/gsbc-churchapp-migrator
+          envFrom:
+            - secretRef:
+                name: database-secret
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 256Mi

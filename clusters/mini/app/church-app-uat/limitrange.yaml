@@ -1,0 +1,15 @@
+# Defaults for anything in this namespace that doesn't size itself. Every workload here does, so this is
+# the backstop that keeps a leak on the single node from taking out the other apps.
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: church-app-uat-defaults
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "1"
+        memory: 384Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 96Mi

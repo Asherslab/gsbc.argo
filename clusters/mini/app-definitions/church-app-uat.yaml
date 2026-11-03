@@ -1,0 +1,26 @@
+# Church app UAT (Asherslab/GSBC.ChurchApp): the backend that TestFlight's "GSBC UAT" app talks to, at
+# uat-app.baptist.com.au. Plain manifests in clusters/mini/app/church-app-uat/; GSBC.ChurchApp's uat-backend
+# workflow rewrites the image tags there after every push to main that passes CI.
+#
+# Secrets are created out of band (clusters/mini/README.md, "church-app-uat"). Postgres takes its password
+# only on first start, so create them before the first sync.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: church-app-uat
+  namespace: argo-cd
+spec:
+  project: default
+  destination:
+    namespace: church-app-uat
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/Asherslab/gsbc.argo
+    path: clusters/mini/app/church-app-uat
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

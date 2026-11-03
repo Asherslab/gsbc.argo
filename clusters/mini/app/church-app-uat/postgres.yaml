@@ -1,0 +1,78 @@
+# UAT's own Postgres, not shared with any other app: one database (`churchapp`), a schema per feature.
+# local-path storage (no storageClassName: the k3s default applies). Backed up by Databasus (README.md).
+#
+# Sync wave -1: Argo waits for it to be healthy before the migrator (wave 0) and the app (wave 1).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: docker.io/library/postgres:17.6
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: churchapp
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: [ "pg_isready", "-U", "postgres", "-d", "churchapp" ]
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: [ "pg_isready", "-U", "postgres", "-d", "churchapp" ]
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

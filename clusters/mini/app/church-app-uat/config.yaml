@@ -1,0 +1,15 @@
+# UAT's non-secret settings. Each one is public anyway (every passkey ceremony and association file shows
+# it), so they live here where a change is reviewed, not in a hand-typed secret. Secrets: README.md.
+#
+# The relying party is uat-app.baptist.com.au, not production's baptist.com.au, so UAT passkeys never sit
+# beside real ones. A passkey can never move domain: UAT accounts stay UAT accounts.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: church-app-config
+data:
+  ASPNETCORE_ENVIRONMENT: Production
+  Accounts__SiteUrl: https://uat-app.baptist.com.au
+  Accounts__Passkeys__RelyingPartyId: uat-app.baptist.com.au
+  Accounts__Passkeys__AllowedOrigins__0: https://uat-app.baptist.com.au
+  Apple__BundleId: au.com.baptist.app.uat

@@ -295,6 +295,93 @@ by GSBC.Accounting's `argo-repo-update` workflow. Until that repo's first push t
 `master` publishes a chart to `https://asherslab.github.io/GSBC.Accounting`, Argo
 reports "chart not found". That is expected; nothing else is wrong.
 
+### church-app-uat (GSBC.ChurchApp — the UAT backend behind TestFlight)
+
+Namespace `church-app-uat`, hostname `uat-app.baptist.com.au` through `baptist-tunnel-mini` (via Traefik,
+so native gRPC gets HTTP/2 end to end; see `tunnel-bindings.yaml`), and the same name on the LAN ingress.
+Its own Postgres on local-path. Media is in Cloudflare R2, not in the cluster. Plain manifests in
+`clusters/mini/app/church-app-uat/`; GSBC.ChurchApp's `uat-backend` workflow pins the three image tags
+after each push to `main` that passes CI (needs `ARGO_REPO_TOKEN` in that repo). The migrator runs as an
+Argo Sync hook before the API and gateway roll (`migrator.yaml`). The design is GSBC.ChurchApp's
+`docs/architecture/environments.md`.
+
+Non-secret settings (relying party, origins, site URL, bundle id) are in `config.yaml`. Six secrets, all
+in `church-app-uat`, **created before the first sync**: Postgres takes its password only when it
+initialises an empty volume.
+
+**1. Postgres**, and the connection string the migrator, API and gateway read (same password, twice):
+
+```
+PG=$(openssl rand -hex 24)
+kubectl -n church-app-uat create secret generic postgres-secret \
+  --from-literal=POSTGRES_PASSWORD="$PG"
+kubectl -n church-app-uat create secret generic database-secret \
+  --from-literal=ConnectionStrings__churchapp="Host=postgres;Port=5432;Database=churchapp;Username=postgres;Password=$PG"
+```
+
+**2. The API token key pair.** The gateway signs a short-lived token for every call with the private key;
+the API checks it with the public one. UAT's own pair, never production's:
+
+```
+openssl ecparam -name prime256v1 -genkey -noout | openssl pkcs8 -topk8 -nocrypt -out /tmp/uat-signing.pem
+openssl ec -in /tmp/uat-signing.pem -pubout -out /tmp/uat-public.pem
+kubectl -n church-app-uat create secret generic tokens-secret \
+  --from-file=Accounts__Tokens__SigningKey=/tmp/uat-signing.pem \
+  --from-file=Accounts__Tokens__PublicKey=/tmp/uat-public.pem
+rm /tmp/uat-signing.pem /tmp/uat-public.pem
+```
+
+Rotating it signs everyone's in-flight tokens out for at most five minutes; sessions survive.
+
+**3. Media in R2** (the two UAT buckets and the R2 API token, from GSBC.ChurchApp's environments.md):
+
+```
+kubectl -n church-app-uat create secret generic storage-secret \
+  --from-literal=Storage__Blobs__ServiceUrl='https://<account-id>.r2.cloudflarestorage.com' \
+  --from-literal=Storage__Blobs__AccessKeyId='<r2 access key id>' \
+  --from-literal=Storage__Blobs__SecretAccessKey='<r2 secret access key>' \
+  --from-literal=Storage__Blobs__PublicBucket='gsbc-uat-media' \
+  --from-literal=Storage__Blobs__PrivateBucket='gsbc-uat-private' \
+  --from-literal=Storage__Blobs__PublicBaseUrl='https://uat-media.baptist.com.au'
+```
+
+**4. Email** (optional: without it the API starts and emails wait in `email.outgoing_emails`). The
+mailer's **development** certificate, so UAT can be revoked without touching production's:
+
+```
+kubectl -n church-app-uat create secret generic email-secret \
+  --from-literal=Email__Graph__TenantId='<tenant id>' \
+  --from-literal=Email__Graph__ClientId='<client id>' \
+  --from-literal=Email__Graph__Sender='app@baptist.com.au' \
+  --from-literal=Email__Graph__Certificate="$(cat mailer-dev.crt mailer-dev.key)"
+```
+
+**5. Apple's team id**, for the gateway's association file (`ABCDE12345`-shaped; Apple developer portal →
+Membership):
+
+```
+kubectl -n church-app-uat create secret generic apple-secret --from-literal=Apple__TeamId='<team id>'
+```
+
+Changing a secret doesn't restart anything: `kubectl -n church-app-uat rollout restart deploy/api deploy/gateway`.
+
+**6. Backups (Databasus).** Add the database in Databasus' UI, like the others, with a read-only role made
+for it:
+
+```
+BK=$(openssl rand -hex 24); echo "$BK"
+kubectl -n church-app-uat exec -i postgres-0 -- psql -U postgres -d churchapp \
+  -c "create role databasus login password '$BK'; grant pg_read_all_data to databasus;"
+```
+
+Then in Databasus: host `postgres.church-app-uat.svc.cluster.local`, port `5432`, database `churchapp`,
+user `databasus`, that password, the same schedule and storage as the other databases. Run one backup by
+hand and check it restores before relying on it.
+
+**Checking it:** `kubectl -n church-app-uat get pods,jobs`; the migrator's log is
+`kubectl -n church-app-uat logs job/migrator`. From anywhere, GSBC.ChurchApp's
+`tools/dev-proxy/check-caching.sh https://uat-app.baptist.com.au` reads the headers Cloudflare serves.
+
 ## Cutover
 
 Two paths reach these services and they flip independently.

@@ -1,0 +1,73 @@
+# The gateway: YARP in front of the API, passkey sign-in, the session-to-token swap, and the admin panel's
+# static files and association file. Its defaults already proxy to http://api:8080 and http://api:8081.
+#
+# `gateway` (h2c, port 8081) is what Traefik sends everything to: the native app's gRPC needs HTTP/2 end to
+# end, and h2c can't share a port with HTTP/1.1, so the HTTP/2-only port serves the admin panel and
+# gRPC-Web too. The `serversscheme: h2c` annotation is what makes Traefik speak HTTP/2 to it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: ghcr.io/asherslab/gsbc-churchapp-gateway
+          ports:
+            - containerPort: 8080
+              name: web
+            - containerPort: 8081
+              name: grpc
+          envFrom:
+            - configMapRef:
+                name: church-app-config
+            - secretRef:
+                name: database-secret
+            - secretRef:
+                name: apple-secret
+          env:
+            - name: Accounts__Tokens__SigningKey
+              valueFrom:
+                secretKeyRef:
+                  name: tokens-secret
+                  key: Accounts__Tokens__SigningKey
+          readinessProbe:
+            grpc:
+              port: 8081
+            periodSeconds: 10
+          livenessProbe:
+            grpc:
+              port: 8081
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 160Mi
+            limits:
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  annotations:
+    traefik.ingress.kubernetes.io/service.serversscheme: h2c
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: grpc
+      port: 8081
+      targetPort: grpc

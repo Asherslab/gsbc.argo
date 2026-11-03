@@ -1,0 +1,25 @@
+# Both paths land here: on-site clients that resolve uat-app.baptist.com.au to the node, and the tunnel
+# (tunnel-bindings.yaml), which comes through Traefik so the whole way is HTTP/2. DNS-01 cert, valid on both.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: church-app-uat
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: church-app-uat-tls
+      hosts:
+        - uat-app.baptist.com.au
+  rules:
+    - host: uat-app.baptist.com.au
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8081

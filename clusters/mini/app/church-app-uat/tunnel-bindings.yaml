@@ -1,0 +1,21 @@
+# Public path: uat-app.baptist.com.au through the baptist.com.au tunnel. New hostname with no record, so
+# safe to claim on the first sync; the operator creates and deletes the proxied CNAME.
+#
+# Through Traefik, not straight to the gateway: the native app speaks gRPC, which needs HTTP/2 to the origin,
+# and cloudflared only speaks HTTP/2 to an https origin (http2Origin, "origin must be configured as https").
+# Traefik terminates that with the Ingress's certificate and talks h2c to the gateway. cloudflared connects
+# by the Service name, which isn't on the certificate, hence noTlsVerify; it never leaves the node.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: church-app-uat
+subjects:
+  - name: church-app-uat
+    spec:
+      fqdn: uat-app.baptist.com.au
+      target: https://traefik.kube-system.svc.cluster.local:443
+      http2Origin: true
+      noTlsVerify: true
+tunnelRef:
+  kind: ClusterTunnel
+  name: baptist-tunnel-mini
