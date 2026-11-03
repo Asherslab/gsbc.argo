@@ -14,8 +14,8 @@ images:
   # The `#image` markers are load-bearing: GSBC.ChurchApp's uat-backend workflow rewrites all three lines by
   # matching them, and fails unless it finds exactly three. All three images are built from one commit.
   - name: ghcr.io/asherslab/gsbc-churchapp-api
-    newTag: sha-c4e52694a8548e314a9833f51eae8b34d99f5209 #image
+    newTag: sha-bc50916543f1efd432d5b90e170f956b1db05260 #image
   - name: ghcr.io/asherslab/gsbc-churchapp-gateway
-    newTag: sha-c4e52694a8548e314a9833f51eae8b34d99f5209 #image
+    newTag: sha-bc50916543f1efd432d5b90e170f956b1db05260 #image
   - name: ghcr.io/asherslab/gsbc-churchapp-migrator
-    newTag: sha-c4e52694a8548e314a9833f51eae8b34d99f5209 #image
+    newTag: sha-bc50916543f1efd432d5b90e170f956b1db05260 #image
