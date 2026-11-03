@@ -305,7 +305,7 @@ after each push to `main` that passes CI (needs `ARGO_REPO_TOKEN` in that repo).
 Argo Sync hook before the API and gateway roll (`migrator.yaml`). The design is GSBC.ChurchApp's
 `docs/architecture/environments.md`.
 
-Non-secret settings (relying party, origins, site URL, bundle id) are in `config.yaml`. Six secrets, all
+Non-secret settings (relying party, origins, site URL, bundle id) are in `config.yaml`. Seven secrets, all
 in `church-app-uat`, **created before the first sync**: Postgres takes its password only when it
 initialises an empty volume.
 
@@ -356,8 +356,8 @@ kubectl -n church-app-uat create secret generic email-secret \
   --from-literal=Email__Graph__Certificate="$(cat mailer-dev.crt mailer-dev.key)"
 ```
 
-**5. Apple's team id**, for the gateway's association file (`ABCDE12345`-shaped; Apple developer portal →
-Membership):
+**5. Apple's team id**, for the gateway's association file and the API's App Attest check
+(`ABCDE12345`-shaped; Apple developer portal → Membership):
 
 ```
 kubectl -n church-app-uat create secret generic apple-secret --from-literal=Apple__TeamId='<team id>'
@@ -365,7 +365,17 @@ kubectl -n church-app-uat create secret generic apple-secret --from-literal=Appl
 
 Changing a secret doesn't restart anything: `kubectl -n church-app-uat rollout restart deploy/api deploy/gateway`.
 
-**6. Backups (Databasus).** Add the database in Databasus' UI, like the others, with a read-only role made
+**6. Push (APNs)** (optional: without it the API starts with push off and the in-app inbox still works).
+The `.p8` key from Apple developer portal → Keys, and its Key ID; one key serves every app:
+
+```
+kubectl -n church-app-uat create secret generic apns-secret \
+  --from-literal=Notifications__Apns__KeyId='<key id>' \
+  --from-literal=Notifications__Apns__TeamId='<team id>' \
+  --from-file=Notifications__Apns__Key=AuthKey_<key id>.p8
+```
+
+**7. Backups (Databasus).** Add the database in Databasus' UI, like the others, with a read-only role made
 for it:
 
 ```

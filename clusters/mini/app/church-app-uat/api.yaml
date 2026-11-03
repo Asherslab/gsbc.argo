@@ -42,6 +42,12 @@ spec:
             - secretRef:
                 name: email-secret
                 optional: true
+            - secretRef:
+                name: apple-secret
+            # Optional: without it the API starts with push off; the in-app inbox still works.
+            - secretRef:
+                name: apns-secret
+                optional: true
           env:
             - name: Accounts__Tokens__PublicKey
               valueFrom:
