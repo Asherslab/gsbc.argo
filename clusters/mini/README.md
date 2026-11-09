@@ -300,10 +300,14 @@ reports "chart not found". That is expected; nothing else is wrong.
 Namespace `church-app-uat`, hostname `uat-app.baptist.com.au` through `baptist-tunnel-mini` (via Traefik,
 so native gRPC gets HTTP/2 end to end; see `tunnel-bindings.yaml`), and the same name on the LAN ingress.
 Its own Postgres on local-path. Media is in Cloudflare R2, not in the cluster. Plain manifests in
-`clusters/mini/app/church-app-uat/`; GSBC.ChurchApp's `uat-backend` workflow pins the three image tags
+`clusters/mini/app/church-app-uat/`; GSBC.ChurchApp's `uat-backend` workflow pins the four image tags
 after each push to `main` that passes CI (needs `ARGO_REPO_TOKEN` in that repo). The migrator runs as an
 Argo Sync hook before the API and gateway roll (`migrator.yaml`). The design is GSBC.ChurchApp's
 `docs/architecture/environments.md`.
+
+The website embeds (`website.yaml`) are the public Events and Sermons pages the church website shows in
+iframes, at `uat-embed.baptist.com.au` through the same tunnel, straight to the service (plain HTTP/1.1).
+No secrets: they read the API's public feeds.
 
 Non-secret settings (relying party, origins, site URL, bundle id) are in `config.yaml`. Seven secrets, all
 in `church-app-uat`, **created before the first sync**: Postgres takes its password only when it

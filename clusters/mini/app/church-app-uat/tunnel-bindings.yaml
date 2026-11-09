@@ -19,3 +19,17 @@ subjects:
 tunnelRef:
   kind: ClusterTunnel
   name: baptist-tunnel-mini
+---
+# The website embeds (website.yaml): plain HTTP/1.1 pages, so straight to the service, no Traefik.
+apiVersion: networking.cfargotunnel.com/v1alpha1
+kind: TunnelBinding
+metadata:
+  name: church-app-uat-embed
+subjects:
+  - name: website
+    spec:
+      fqdn: uat-embed.baptist.com.au
+      target: http://website.church-app-uat.svc.cluster.local:8080
+tunnelRef:
+  kind: ClusterTunnel
+  name: baptist-tunnel-mini

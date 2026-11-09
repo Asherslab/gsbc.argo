@@ -1,0 +1,68 @@
+# The website embeds: the public Events and Sermons pages the church website shows in iframes. Static server
+# rendering read from the API's public feeds over gRPC (http://api:8081, its default). No secrets, no database.
+#
+# Production settings, so it sends production's caching (pages `public, max-age=60`) and frame-ancestors;
+# only the app it links to is UAT's. Public at uat-embed.baptist.com.au (tunnel-bindings.yaml), HTTP/1.1.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+  labels:
+    app: website
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: website
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+        - name: website
+          image: ghcr.io/asherslab/gsbc-churchapp-website
+          ports:
+            - containerPort: 8080
+              name: web
+            - containerPort: 8081
+              name: grpc
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: Website__AppOrigin
+              value: https://uat-app.baptist.com.au
+          startupProbe:
+            grpc:
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            grpc:
+              port: 8081
+              service: ready
+            periodSeconds: 10
+          livenessProbe:
+            grpc:
+              port: 8081
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 128Mi
+            limits:
+              memory: 320Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: website
+spec:
+  selector:
+    app: website
+  ports:
+    - name: web
+      port: 8080
+      targetPort: web
