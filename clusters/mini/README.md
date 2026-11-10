@@ -309,7 +309,7 @@ The website embeds (`website.yaml`) are the public Events and Sermons pages the 
 iframes, at `uat-embed.baptist.com.au` through the same tunnel, straight to the service (plain HTTP/1.1).
 No secrets: they read the API's public feeds.
 
-Non-secret settings (relying party, origins, site URL, bundle id) are in `config.yaml`. Seven secrets, all
+Non-secret settings (relying party, origins, site URL, bundle id) are in `config.yaml`. Eight secrets, all
 in `church-app-uat`, **created before the first sync**: Postgres takes its password only when it
 initialises an empty volume.
 
@@ -379,7 +379,20 @@ kubectl -n church-app-uat create secret generic apns-secret \
   --from-file=Notifications__Apns__Key=AuthKey_<key id>.p8
 ```
 
-**7. Backups (Databasus).** Add the database in Databasus' UI, like the others, with a read-only role made
+**7. Safe Ministry Check** (optional: without it Safe Ministry Check shows "Not connected" and blue cards stay
+hand-entered). The church's subdomain and the API key from Safe Ministry Check → Settings → Syncing → API. Typed
+in, so neither lands in shell history:
+
+```
+read -r  "SMC_SUB?Safe Ministry subdomain: "
+read -rs "SMC_KEY?Safe Ministry API key: "; echo
+kubectl -n church-app-uat create secret generic safe-ministry-secret \
+  --from-literal=People__SafeMinistryCheck__Subdomain="$SMC_SUB" \
+  --from-literal=People__SafeMinistryCheck__ApiKey="$SMC_KEY"
+unset SMC_SUB SMC_KEY
+```
+
+**8. Backups (Databasus).** Add the database in Databasus' UI, like the others, with a read-only role made
 for it:
 
 ```

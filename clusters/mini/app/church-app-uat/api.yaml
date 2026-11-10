@@ -48,6 +48,10 @@ spec:
             - secretRef:
                 name: apns-secret
                 optional: true
+            # Optional: without it Safe Ministry Check shows "Not connected" and blue cards stay hand-entered.
+            - secretRef:
+                name: safe-ministry-secret
+                optional: true
           env:
             - name: Accounts__Tokens__PublicKey
               valueFrom:
