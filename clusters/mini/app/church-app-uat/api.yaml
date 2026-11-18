@@ -72,12 +72,26 @@ spec:
             grpc:
               port: 8081
             periodSeconds: 30
+          # Outreach's map build runs in this pod and peaks at about 1.7 GB for a few minutes (measured in dev,
+          # GSBC.ChurchApp's outreach.md); the G-NAF import can run beside it. The request stays at the steady
+          # state so the node can schedule it; the limit is the build plus room. Under 512Mi the build was
+          # OOM-killed on every start and resumed into the same kill.
           resources:
             requests:
               cpu: 50m
-              memory: 192Mi
+              memory: 256Mi
             limits:
-              memory: 512Mi
+              memory: 2560Mi
+          # The temp folder: the G-NAF zip (about 1.7 GB), the Queensland extract (about 200 MB) and each
+          # region's map while it's cut. An emptyDir so a restart starts clean and a runaway is evicted at the
+          # limit rather than filling the node's disk.
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 4Gi
 ---
 apiVersion: v1
 kind: Service

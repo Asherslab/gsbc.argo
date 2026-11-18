@@ -13,7 +13,8 @@ vmType: "qemu"
 arch: "aarch64"
 
 cpus: 4                   # cluster measured 0.29 cores total
-memory: "8GiB"            # measured steady state ~4.2GiB
+memory: "12GiB"           # measured steady state ~4.2GiB (2026-08, before accounting, graced and
+                          # church-app-uat); church-app-uat's map build adds a ~1.7GiB peak (2026-11)
 disk: "100GiB"            # PVCs total 22Gi + images
 
 mounts: []

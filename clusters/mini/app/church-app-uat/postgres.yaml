@@ -47,15 +47,20 @@ spec:
             exec:
               command: [ "pg_isready", "-U", "postgres", "-d", "churchapp" ]
             periodSeconds: 30
+          # Room for the G-NAF import (16 million rows and their indexes, quarterly) and searches over it.
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 256Mi
             limits:
-              memory: 512Mi
+              memory: 1Gi
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+  # 5Gi is nominal: local-path doesn't enforce a size, so the real limit is the VM's disk. G-NAF alone is
+  # about 4.6 GB, and about 10 GB once a quarterly release has replaced the first (the old one is kept until
+  # the new one finishes, and deleted rows' space is reused, not returned). Left at 5Gi deliberately: a
+  # volumeClaimTemplate can't change in place, so editing it would fail every sync of this app.
   volumeClaimTemplates:
     - metadata:
         name: data
